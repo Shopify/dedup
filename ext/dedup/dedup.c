@@ -12,7 +12,7 @@ static VALUE deep_intern(VALUE);
 typedef struct {
     bool changed;
     long index;
-    VALUE pairs[RHASH_AR_TABLE_MAX_SIZE * 2];
+    VALUE *pairs;
 } hash_iter_arg;
 
 int
@@ -29,28 +29,6 @@ dedup_hash_iter_callback(VALUE key, VALUE value, VALUE arg)
     iter_arg->pairs[iter_arg->index] = new_value;
     iter_arg->index++;
     iter_arg->changed |= new_value != value;
-
-    return ST_CONTINUE;
-}
-
-static int
-st_foreach_check_callback(st_data_t key, st_data_t value, st_data_t argp, int error)
-{
-    return ST_REPLACE;
-}
-
-static int
-st_foreach_update_callback(st_data_t *key, st_data_t *value, st_data_t hash, int existing)
-{
-    VALUE new_key = deep_intern(*key);
-    if (*key != new_key) {
-        RB_OBJ_WRITE((VALUE)hash, key, new_key);
-    }
-
-    VALUE new_value = deep_intern(*value);
-    if (*value != new_value) {
-        RB_OBJ_WRITE((VALUE)hash, value, new_value);
-    }
 
     return ST_CONTINUE;
 }
@@ -72,30 +50,28 @@ deep_intern(VALUE data)
       case T_STRING:
         return rb_funcall(rb_str_freeze(data), id_uminus, 0);
         break;
-      case T_HASH: {
-            if (RHASH_EMPTY_P(data)) {
+      case T_HASH:
+        {
+            long size = RHASH_SIZE(data);
+            if (size == 0) {
                 return empty_hash;
             }
 
-            long size = RHASH_SIZE(data);
-            if (size <= RHASH_AR_TABLE_MAX_SIZE) {
-                hash_iter_arg arg;
-
-                arg.changed = false;
-                arg.index = 0;
-                rb_hash_foreach(data, dedup_hash_iter_callback, (VALUE)&arg);
-                if (arg.changed) {
-                    rb_hash_clear(data);
-                    rb_hash_bulk_insert(arg.index, arg.pairs, data);
-                }
-            } else {
-                st_foreach_with_replace(RHASH_TBL(data), st_foreach_check_callback, st_foreach_update_callback, data);
+            hash_iter_arg arg;
+            arg.changed = false;
+            arg.index = 0;
+            arg.pairs = alloca(sizeof(VALUE) * 2 * size);
+            rb_hash_foreach(data, dedup_hash_iter_callback, (VALUE)&arg);
+            if (arg.changed) {
+                rb_hash_clear(data);
+                rb_hash_bulk_insert(arg.index, arg.pairs, data);
             }
 
             rb_obj_freeze(data);
         }
         break;
-      case T_ARRAY: {
+      case T_ARRAY:
+        {
             long size = RARRAY_LEN(data);
             if (size == 0) {
                 return empty_array;
