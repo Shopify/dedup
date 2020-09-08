@@ -1,8 +1,9 @@
 # Dedup
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/dedup`. To experiment with that code, run `bin/console` for an interactive prompt.
+Deep object deduplication.
 
-TODO: Delete this and the text above, and describe your gem
+If your app keeps lots of static data in memory, such as i18n data or large configurations,
+this can reduce memory retention.
 
 ## Installation
 
@@ -22,7 +23,15 @@ Or install it yourself as:
 
 ## Usage
 
-TODO: Write usage instructions here
+This library is meant to be called on large static data structures loaded during boot:
+
+```ruby
+SOME_DATA = Dedup.deep_intern!(YAML.load_file('path.yml'))
+```
+
+Keep in mind that it trades CPU during boot reduced for memory retention.
+It isn't meant to be applied on runtime data with reduced lifetime, but on
+static data loaded during boot.
 
 ## Development
 

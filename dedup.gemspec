@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative 'lib/dedup/version'
 
 Gem::Specification.new do |spec|
@@ -7,7 +9,7 @@ Gem::Specification.new do |spec|
   spec.email         = ["jean.boussier@gmail.com"]
 
   spec.summary       = %q{Fast object deduplication}
-  spec.description   = %q{Fast object deduplication}
+  spec.description   = %q{If your app keeps lots of static data in memory, such as i18n data or large configurations, this can reduce memory retention.}
   spec.homepage      = "https://github.com/Shopify/dedup"
   spec.license       = "MIT"
   spec.required_ruby_version = Gem::Requirement.new(">= 2.5.0")
