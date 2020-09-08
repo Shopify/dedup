@@ -8,15 +8,21 @@ Rake::TestTask.new(:test) do |t|
   t.test_files = FileList["test/**/*_test.rb"]
 end
 
-if RUBY_ENGINE == 'ruby' && RUBY_VERSION >= '2.7'
+if RUBY_ENGINE == 'ruby'
   require "rake/extensiontask"
 
   Rake::ExtensionTask.new("dedup") do |ext|
     ext.ext_dir = 'ext/dedup'
     ext.lib_dir = "lib/dedup"
   end
-
-  task default: %i(compile test)
 else
-  task default: %i(test)
+  task :compile do
+    # noop
+  end
+
+  task :clean do
+    # noop
+  end
 end
+
+task default: %i(compile test)

@@ -25,10 +25,7 @@ Gem::Specification.new do |spec|
     Dir['{lib,ext}/**/*'] + %w(LICENSE.txt README.md)
   end
 
-  if RUBY_ENGINE == 'ruby' && RUBY_VERSION >= '2.7'
-    spec.platform   = Gem::Platform::RUBY
-    spec.extensions = ['ext/dedup/extconf.rb']
-  end
+  spec.extensions = ['ext/dedup/extconf.rb']
 
   spec.bindir        = "exe"
   spec.executables   = spec.files.grep(%r{^exe/}) { |f| File.basename(f) }
