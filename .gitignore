@@ -9,3 +9,5 @@
 *.bundle
 *.so
 .byebug_history
+/*.gem
+
