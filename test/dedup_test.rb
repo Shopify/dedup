@@ -1,11 +1,15 @@
+# frozen_string_literal: true
+
 require "test_helper"
 
 require 'objspace'
 
 module Dedup
-  class DedupTest < Minitest::Test
-    def test_that_it_has_a_version_number
-      refute_nil ::Dedup::VERSION
+  module SharedTests
+    def test_deduplicate_string
+      assert_interned @implementation.deep_intern!("foo") # fstring
+      assert_interned @implementation.deep_intern!("foo" * 3) # mutable
+      assert_interned @implementation.deep_intern!(("foo" * 3).freeze) # frozen
     end
 
     def test_deduplicate_hash_values
@@ -13,14 +17,16 @@ module Dedup
 
       refute_interned hash.keys.first
       refute_interned hash.values.first
-      Native.deep_intern!(hash)
 
+      @implementation.deep_intern!(hash)
+
+      assert_predicate hash, :frozen?
       assert_interned hash.keys.first
       assert_interned hash.values.first
     end
 
     def test_various_types
-      Native.deep_intern!(
+      @implementation.deep_intern!(
         true => false,
         nil => /foo/,
         Object.new => [1].freeze,
@@ -29,12 +35,14 @@ module Dedup
       )
     end
 
+    AR_TABLE_SIZE = ObjectSpace.memsize_of({ 1 => 2})
     def test_ar_table_size
       hash = { 1 => 2 }
-      # AR table are 168B, improper use of the API can convert hashes to ST table which is minumum 192B
-      assert_equal 168, ObjectSpace.memsize_of(hash)
-      Native.deep_intern!(hash)
-      assert_equal 168, ObjectSpace.memsize_of(hash)
+      # AR table are 168B, improper use of the API can convert
+      # small hashes to ST table which is minumum 192B
+      assert_equal AR_TABLE_SIZE, ObjectSpace.memsize_of(hash)
+      @implementation.deep_intern!(hash)
+      assert_equal AR_TABLE_SIZE, ObjectSpace.memsize_of(hash)
     end
 
     def test_st_table_hash
@@ -53,7 +61,7 @@ module Dedup
 
       refute_interned hash.keys.first
       refute_interned hash.values.first
-      Native.deep_intern!(hash)
+      @implementation.deep_intern!(hash)
 
       assert_interned hash.keys.first
       assert_interned hash.values.first
@@ -69,6 +77,26 @@ module Dedup
     def assert_interned(str)
       repr = ObjectSpace.dump(str)
       assert repr.include?('"fstring":true'), "Expected this to be interned: #{repr}"
+    end
+  end
+
+  class DedupTest < Minitest::Test
+    include SharedTests
+
+    def setup
+      @implementation = ::Dedup
+    end
+
+    def test_that_it_has_a_version_number
+      refute_nil ::Dedup::VERSION
+    end
+  end
+
+  class RubyDedupTest < Minitest::Test
+    include SharedTests
+
+    def setup
+      @implementation = ::Dedup::Ruby
     end
   end
 end

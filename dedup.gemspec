@@ -10,7 +10,7 @@ Gem::Specification.new do |spec|
   spec.description   = %q{Fast object deduplication}
   spec.homepage      = "https://github.com/Shopify/dedup"
   spec.license       = "MIT"
-  spec.required_ruby_version = Gem::Requirement.new(">= 2.7.1")
+  spec.required_ruby_version = Gem::Requirement.new(">= 2.5.0")
 
   spec.metadata["allowed_push_host"] = "https://rubygems.org"
 
@@ -23,7 +23,10 @@ Gem::Specification.new do |spec|
     `git ls-files -z`.split("\x0").reject { |f| f.match(%r{^(test|spec|features)/}) }
   end
 
-  spec.extensions = ['ext/dedup/extconf.rb']
+  if RUBY_ENGINE == 'ruby' && RUBY_VERSION >= '2.7'
+    spec.platform   = Gem::Platform::RUBY
+    spec.extensions = ['ext/dedup/extconf.rb']
+  end
 
   spec.bindir        = "exe"
   spec.executables   = spec.files.grep(%r{^exe/}) { |f| File.basename(f) }

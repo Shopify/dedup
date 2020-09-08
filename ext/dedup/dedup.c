@@ -107,5 +107,5 @@ Init_dedup()
     rb_global_variable(&empty_array);
 
     VALUE rb_mNative = rb_define_module_under(rb_mDedup, "Native");
-    rb_define_module_function(rb_mNative, "deep_intern!", dedup_deep_intern_bang, 1);
+    rb_define_method(rb_mNative, "deep_intern!", dedup_deep_intern_bang, 1);
 }
