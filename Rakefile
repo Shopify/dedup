@@ -15,8 +15,14 @@ if RUBY_ENGINE == 'ruby' && RUBY_VERSION >= '2.7'
     ext.ext_dir = 'ext/dedup'
     ext.lib_dir = "lib/dedup"
   end
-
-  task default: %i(compile test)
 else
-  task default: %i(test)
+  task :compile do
+    # noop
+  end
+
+  task :clean do
+    # noop
+  end
 end
+
+task default: %i(compile test)
