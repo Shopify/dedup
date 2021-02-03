@@ -10,3 +10,4 @@
 *.so
 .byebug_history
 /*.gem
+Gemfile.lock
