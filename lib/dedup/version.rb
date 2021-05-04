@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Dedup
-  VERSION = "0.1.3"
+  VERSION = "0.1.4"
 
   DEDUP_FROZEN_STRINGS = begin
     rand_string = rand.to_s
