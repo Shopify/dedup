@@ -55,9 +55,16 @@ module Dedup
 end
 
 begin
-  require "dedup/dedup"
-  Dedup::Native.extend(Dedup::Native)
-  Dedup.extend(Dedup::Native)
+  require "dedup/#{RUBY_VERSION[/^\d+\.\d+/]}/dedup"
 rescue LoadError
-  Dedup.extend(Dedup::Ruby)
+  begin
+    require "dedup/dedup"
+  rescue LoadError
+    Dedup.extend(Dedup::Ruby)
+  end
+ensure
+  if defined?(Dedup::Native)
+    Dedup::Native.extend(Dedup::Native)
+    Dedup.extend(Dedup::Native)
+  end
 end
